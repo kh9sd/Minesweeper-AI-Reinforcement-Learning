@@ -1,0 +1,23 @@
+vary discount factor hyperparameter
+- since all moves move the thing towards the goal
+
+try different exploration heuristics?
+- epsilon greedy?
+- other shit?
+
+experience replay:
+- instead of:
+    - get Q (state, action), apply to training, onto next one
+    - instead do: get list of Q, sample Q, and apply to training
+        - replay buffer: size is a hyperparameter
+
+uses 2 deep q-learning networks:
+- instead of 1 network for estimating Q, then updating based on own esitmates
+- have 1 network for action selection, and 1 for action eval
+    - avoid overestimation bias (maxing Q-values tends to overestimate them)
+    - 2 independent models
+        - primary model: updated every step, used to select actions
+        - target model: used to estimate max Q-value
+            - then used to train primary model
+            - primary model params are periodically copied (or averaged) over to 
+            target model (frequency is another hyperparam)
