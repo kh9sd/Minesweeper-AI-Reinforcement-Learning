@@ -60,6 +60,7 @@ class DQNAgent(object):
 
     def get_action(self, state):
         board = state.reshape(1, self.env.ntiles)
+        # additional thing just for simplifcation, just to tell agent no need to pick through already chosen tiles
         unsolved = [i for i, x in enumerate(board[0]) if x==-0.125]
 
         rand = np.random.random() # random value b/w 0 & 1
@@ -68,6 +69,8 @@ class DQNAgent(object):
             move = np.random.choice(unsolved)
         else:
             moves = self.model.predict(np.reshape(state, (1, self.env.nrows, self.env.ncols, 1)))
+
+            # TODO: wtf is this
             moves[board!=-0.125] = np.min(moves) # set already clicked tiles to min value
             move = np.argmax(moves)
 
@@ -76,12 +79,17 @@ class DQNAgent(object):
     def update_replay_memory(self, transition):
         self.replay_memory.append(transition)
 
+    # TODO: wtf is done for
     def train(self, done):
         if len(self.replay_memory) < MEM_SIZE_MIN:
             return
 
+        # get training batch from replay buffer
         batch = random.sample(self.replay_memory, BATCH_SIZE)
 
+        # TODO: print out data type of transition
+        # might just be s,a,s',r?
+        # nope, s,a,r,s',done
         current_states = np.array([transition[0] for transition in batch])
         current_qs_list = self.model.predict(current_states)
 
@@ -90,6 +98,7 @@ class DQNAgent(object):
 
         X,y = [], []
 
+        # TODO: study this training loop
         for i, (current_state, action, reward, new_current_state, done) in enumerate(batch):
             if not done:
                 max_future_q = np.max(future_qs_list[i])
@@ -107,6 +116,8 @@ class DQNAgent(object):
                        shuffle=False, verbose=0, callbacks=[self.tensorboard]\
                        if done else None)
 
+        # as part of double deep learning networks, only update
+        # target thing every HYPER num of trainings
         # updating to determine if we want to update target_model yet
         if done:
             self.target_update_counter += 1
